@@ -27,7 +27,7 @@ namespace TMaquilaApi.Models
         [JsonProperty("created_by")]
         public Guid CreatedBy { get; set; }
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
+        [Column("created_at", NullValueHandling.Ignore)]
+        public DateTime? CreatedAt { get; set; }
     }
 }

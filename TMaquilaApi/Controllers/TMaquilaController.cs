@@ -70,7 +70,7 @@ namespace TMaquilaApi.Controllers
             .Get();
 
             var loads = results.Models;
-            var numPages = (decimal)(totalRows / pageSize);
+            var numPages = (decimal)totalRows / pageSize;
             var totalPages = totalRows > 0 ? (int)Math.Ceiling(numPages) : 0;
 
             var loadsResponse = new LoadsResponse
@@ -81,7 +81,35 @@ namespace TMaquilaApi.Controllers
 
             return Ok(loadsResponse);
         }
-    }
 
+        [HttpPost("postNewLoad")]
+        public async Task<IActionResult> PostNewLoad(NewLoadRequest request)
+        {
+            var user = await _userService.GetAuthenticatedUser();
+            var isValidDate = DateTime.TryParse(request.legDate, out DateTime legDate);
+
+            if (!isValidDate)
+            {
+                return BadRequest("Invalid format of legDate");
+            }
+
+            if (user == null) {
+                return BadRequest("Invalid user, not found in DB");
+            }
+
+            var newLoad = new TblLoad
+            {
+                VendorName = request.vendorName,
+                Type = request.type,
+                Deleted = request.deleted,
+                LegDate = legDate,
+                CreatedBy = user.Id!
+            };
+
+            var response = await _supabaseClient.From<TblLoad>().Insert(newLoad);
+            var newTblLoad = response.Models.First();
+            return Ok(newTblLoad);
+        }
+    }
 
 }
