@@ -97,6 +97,23 @@ namespace TMaquilaApi.Controllers
                 return BadRequest("Invalid user, not found in DB");
             }
 
+            // var newLoad = new TblLoad
+            // {
+            //     VendorName = request.vendorName,
+            //     Type = request.type,
+            //     Deleted = request.deleted,
+            //     LegDate = legDate,
+            //     CreatedBy = user.Id!
+            // };
+
+            // var response = await _supabaseClient.From<TblLoad>().Insert(newLoad);
+            // var newTblLoad = response.Models.First();
+            var newTblLoad = await saveLoadChanges(request, user);
+            return Ok(newTblLoad);
+        }
+
+        private async Task<TblLoad> saveLoadChanges(NewLoadRequest request, TUser user) {
+            DateTime.TryParse(request.legDate, out DateTime legDate);
             var newLoad = new TblLoad
             {
                 VendorName = request.vendorName,
@@ -105,10 +122,14 @@ namespace TMaquilaApi.Controllers
                 LegDate = legDate,
                 CreatedBy = user.Id!
             };
+            if (request.Id.HasValue) {
+                newLoad.Id = request.Id.Value;
+                var updateResponse = await _supabaseClient.From<TblLoad>().Update(newLoad);
+                return updateResponse.Models.First();
+            }
 
             var response = await _supabaseClient.From<TblLoad>().Insert(newLoad);
-            var newTblLoad = response.Models.First();
-            return Ok(newTblLoad);
+            return response.Models.First();
         }
     }
 
